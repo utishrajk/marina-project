@@ -44,7 +44,7 @@ public class PyTorchService {
                 .setTypes(Image.class, Classifications.class)
                 .optApplication(Application.CV.IMAGE_CLASSIFICATION)
                 //.optModelUrls("file:///c:/data/resnet50_scripted.pt")  // path to the PyTorch model file
-                .optModelUrls("file:///c:/data/fine_tuned_resnet18_scripted.pt")  // path to the PyTorch model file
+                .optModelUrls("file:///home/suniti/PycharmProjects/pythonProject1/fine_tuned_resnet18_scripted.pt")  // path to the PyTorch model file
                 .optTranslator(new SimpleTranslator())
                 .build();
 
