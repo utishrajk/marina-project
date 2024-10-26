@@ -17,6 +17,147 @@
 </nav>
 <div class="container">
     <h1>Welcome to the Home Page</h1>
+
+    <h2>Transfer Learning Implementation Theory</h2>
+
+    <p>The provided implementation leverages <strong>transfer learning</strong> using a pre-trained <strong>ResNet-18</strong> model to perform image classification on a dataset containing <strong>10 classes</strong> of flower images. Below is a concise theoretical overview of the key components and decisions in this implementation:</p>
+
+    <h3>1. <strong>Transfer Learning with ResNet-18</strong></h3>
+
+    <p><strong>Transfer learning</strong> involves utilizing a model that has been pre-trained on a large dataset, such as ImageNet, and adapting it to a specific task. This approach is advantageous because:</p>
+    <ul>
+        <li><strong>Feature Extraction:</strong> Pre-trained models have learned rich feature representations that can be effective for various tasks.</li>
+        <li><strong>Reduced Training Time:</strong> Leveraging existing weights accelerates the training process.</li>
+        <li><strong>Improved Performance:</strong> Often leads to better performance, especially with limited data.</li>
+    </ul>
+    <p>In this implementation, <strong>ResNet-18</strong>, a convolutional neural network known for its residual connections, is chosen for its balance between depth and computational efficiency.</p>
+
+    <pre><code>model = models.resnet18(pretrained=True)</code></pre>
+
+    <h3>2. <strong>Modifying the Final Layer</strong></h3>
+
+    <p>The original ResNet-18 model is trained for <strong>1,000 classes</strong>. To adapt it to <strong>10 classes</strong>, the final fully connected layer (<code>model.fc</code>) is replaced. This modification ensures that the model's output aligns with the number of target classes in the flower dataset.</p>
+
+    <pre><code>model.fc = nn.Linear(model.fc.in_features, num_classes)</code></pre>
+
+    <h3>3. <strong>Loss Function and Optimizer</strong></h3>
+
+    <ul>
+        <li>
+            <strong>Loss Function:</strong> <strong>Cross-Entropy Loss</strong> is employed, suitable for multi-class classification tasks. It measures the discrepancy between the predicted probabilities and the actual class labels.
+            <pre><code>criterion = nn.CrossEntropyLoss()</code></pre>
+        </li>
+        <li>
+            <strong>Optimizer:</strong> <strong>Adam Optimizer</strong> is selected for its adaptive learning rate capabilities, which often result in faster convergence.
+            <pre><code>optimizer = optim.Adam(model.parameters(), lr=0.001)</code></pre>
+        </li>
+    </ul>
+
+    <h3>4. <strong>Image Preprocessing and Transformation</strong></h3>
+
+    <p>Proper preprocessing is crucial for model performance. The transformations applied include:</p>
+    <ol>
+        <li>
+            <strong>Resizing:</strong> Scales the shorter side of the image to 256 pixels.
+            <pre><code>transforms.Resize(256)</code></pre>
+        </li>
+        <li>
+            <strong>Center Cropping:</strong> Extracts the central 224x224 pixels, matching ResNet-18's expected input size.
+            <pre><code>transforms.CenterCrop(224)</code></pre>
+        </li>
+        <li>
+            <strong>Tensor Conversion:</strong> Converts images to PyTorch tensors.
+            <pre><code>transforms.ToTensor()</code></pre>
+        </li>
+        <li>
+            <strong>Normalization:</strong> Standardizes the image using the mean and standard deviation of the ImageNet dataset.
+            <pre><code>transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])</code></pre>
+        </li>
+    </ol>
+
+    <h3>5. <strong>Dataset and DataLoader</strong></h3>
+
+    <p>The <strong>ImageFolder</strong> dataset assumes a directory structure where each subfolder represents a class. The <strong>DataLoader</strong> facilitates batch processing and shuffling of the data during training.</p>
+
+    <pre><code>train_dataset = datasets.ImageFolder('/path/to/flower_images', transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)</code></pre>
+
+    <h3>6. <strong>Training Loop</strong></h3>
+
+    <p>The model is trained for <strong>10 epochs</strong> with the following steps in each iteration:</p>
+    <ol>
+        <li>
+            <strong>Forward Pass:</strong> Computes the output probabilities by passing the input images through the model.
+            <pre><code>outputs = model(images)</code></pre>
+        </li>
+        <li>
+            <strong>Loss Calculation:</strong> Evaluates the discrepancy between predictions and true labels using the defined loss function.
+            <pre><code>loss = criterion(outputs, labels)</code></pre>
+        </li>
+        <li>
+            <strong>Backward Pass:</strong> Computes gradients for optimization based on the loss.
+            <pre><code>loss.backward()</code></pre>
+        </li>
+        <li>
+            <strong>Weight Update:</strong> Adjusts model parameters based on the computed gradients to minimize the loss.
+            <pre><code>optimizer.step()</code></pre>
+        </li>
+        <li>
+            <strong>Loss Tracking:</strong> Accumulates and reports the average loss per epoch to monitor training progress.
+            <pre><code>running_loss += loss.item()</code></pre>
+        </li>
+    </ol>
+    <p>Example of printing the average loss for each epoch:</p>
+    <pre><code>print(f"Epoch {epoch+1}, Loss: {running_loss/len(train_loader)}")</code></pre>
+
+    <h3>7. <strong>Model Saving</strong></h3>
+
+    <p>After training, the model is saved in two formats:</p>
+    <ul>
+        <li>
+            <strong>State Dictionary:</strong> Contains the model's learned parameters.
+            <pre><code>torch.save(model.state_dict(), 'fine_tuned_resnet18.pth')</code></pre>
+        </li>
+        <li>
+            <strong>TorchScript:</strong> Enables model deployment in different environments by saving a serialized version of the model.
+            <pre><code>model_scripted = torch.jit.script(model)
+model_scripted.save('fine_tuned_resnet18_scripted.pt')</code></pre>
+        </li>
+    </ul>
+
+    <h3>8. <strong>Prediction Function</strong></h3>
+
+    <p>The <code>predict</code> function performs inference on new images by following these steps:</p>
+    <ol>
+        <li>
+            <strong>Image Loading and Transformation:</strong> Loads the image, applies the same preprocessing steps as during training, and prepares it for input into the model.
+        </li>
+        <li>
+            <strong>Model Loading:</strong> Loads the fine-tuned weights from the saved state dictionary and sets the model to evaluation mode to disable dropout and other training-specific layers.
+            <pre><code>model.eval()</code></pre>
+        </li>
+        <li>
+            <strong>Inference:</strong> Passes the processed image through the model to obtain output probabilities and determines the predicted class.
+            <pre><code>with torch.no_grad():
+outputs = model(image)
+_, predicted = torch.max(outputs, 1)</code></pre>
+        </li>
+        <li>
+            <strong>Output:</strong> Returns the index of the predicted class.
+            <pre><code>return predicted.item()</code></pre>
+        </li>
+    </ol>
+
+    <h3>9. <strong>Example Usage</strong></h3>
+
+    <p>The implementation includes examples demonstrating how to predict classes for individual images and a set of images from different classes. This ensures that the model can generalize well across various inputs.</p>
+
+    <hr>
+
+    <p>This implementation effectively adapts a robust pre-trained model to a specific classification task, ensuring efficient training and reliable performance through strategic modifications and preprocessing steps.</p>
+
+
 </div>
 </body>
 </html>
