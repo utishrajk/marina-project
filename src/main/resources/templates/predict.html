@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Predict</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/denoise">Denoise</a></li>
+        <li><a href="/predict">Predict</a></li>
+        <li><a href="/model">Model</a></li>
+    </ul>
+</nav>
+<div class="container">
+    <h1>Predict Page</h1>
+    <form id="predictForm">
+        <input type="file" id="fileInput" accept="image/*" required>
+        <br><br>
+        <img id="selectedImage" src="#" alt="Selected Image" style="display:none; max-width: 100%; height: auto;">
+        <br><br>
+        <button type="submit">Submit File to Predict</button>
+    </form>
+    <br>
+    <h2>Prediction Result:</h2>
+    <p id="predictionResult"></p>
+</div>
+<script src="/predict.js"></script>
+</body>
+</html>
