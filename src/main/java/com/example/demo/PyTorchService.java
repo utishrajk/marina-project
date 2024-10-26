@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -58,6 +59,15 @@ public class PyTorchService {
         model = criteria.loadModel();
 
         System.out.println("Model loaded successfully");
+    }
+
+    public ModelResponse getModel() {
+        ModelResponse modelResponse = new ModelResponse();
+
+        modelResponse.setName(model.getName());
+        modelResponse.setProperties(model.getProperties());
+
+        return modelResponse;
     }
 
     /**
