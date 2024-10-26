@@ -89,7 +89,14 @@ public class PyTorchService {
         public NDList processInput(TranslatorContext ctx, Image input) {
             // Convert Image to NDArray with 3 channels (RGB)
             NDArray array = input.toNDArray(ctx.getNDManager(), Image.Flag.COLOR);
-            return new NDList(NDImageUtils.toTensor(array));
+
+            // Apply transformations: Resize, CenterCrop, ToTensor, Normalize
+            array = NDImageUtils.resize(array, 256, 256);
+            array = NDImageUtils.centerCrop(array, 224, 224);
+            array = NDImageUtils.toTensor(array);
+            array = NDImageUtils.normalize(array, new float[]{0.485f, 0.456f, 0.406f}, new float[]{0.229f, 0.224f, 0.225f});
+
+            return new NDList(array);
         }
 
         @Override
